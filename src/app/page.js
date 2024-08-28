@@ -1,28 +1,54 @@
 "use client";
 import Image from "next/image";
 import axios from "axios";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import textService from '../services/text';
 
 export default function Home() {
-  const [data, setData] = useState("");
+  const [data, setData] = useState([]);
   const [text, setText] = useState("");
   const contentRef = useRef(null);
 
   const handleClick = async () => {
     let textInput = contentRef.current.value;
-    textService.create({content: textInput}).then((returnedText) => {
+    textService.create({ content: textInput }).then((returnedText) => {
       setText(text.concat(returnedText));
     });
 
-    
-
-      
   };
+
+
+  const fetchAllData = async () => {
+    try {
+      // setLoading(true);
+      const response = await textService.getAll();
+      console.log("Fetched all objects:", response);
+      setData(response);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError(error);
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, [])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="flex flex-col w-1/2">
+      
+        <ul>
+          {data.map(function (object, i) {
+            return <li key={i}>
+              {object.id}
+            </li>;
+          })}
+        </ul>
+    
+      {/* <div className="flex flex-col w-1/2">
         <p className="text-3xl text-center">
           Wellcome to Band<span className="text-red-600">aid! </span> We are
           here to help u{" "}
@@ -57,7 +83,7 @@ export default function Home() {
             Očisti
           </button>
         </div>
-      </div>
+      </div> */}
     </main>
   );
 }
