@@ -25,9 +25,16 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+.scroll-text {
+  animation: scroll 10s linear infinite;
+  /* Keeps text on a single line */
+}
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+@keyframes scroll {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(-100%);
   }
 }
