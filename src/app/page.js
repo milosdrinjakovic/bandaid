@@ -1,24 +1,38 @@
 "use client";
 import Image from "next/image";
 import axios from "axios";
-import { useRef, useState } from "react";
-import textService from '../services/text';
+import { useRouter } from 'next/navigation';
 
+import { useRef, useState, useEffect } from "react";
+import textService from "../services/text";
 export default function Home() {
   const [data, setData] = useState("");
   const [text, setText] = useState("");
   const contentRef = useRef(null);
-
+  const router = useRouter();
   const handleClick = async () => {
-    let textInput = contentRef.current.value;
-    textService.create({content: textInput}).then((returnedText) => {
-      setText(text.concat(returnedText));
-    });
+    const textInput = contentRef.current.value;
+    try {
+      const returnedTextObj = await textService.create({ content: textInput });
 
-    
+      console.log("Data returned from server", returnedTextObj);
 
+      console.log("Successful saving data");
+
+      router.push(`/teleprompter/${returnedTextObj.id}`)
       
+
+      if (contentRef.current) {
+        contentRef.current.value = "";
+      }
+    } catch (error) {
+      console.log("Error occurred:", error);
+    }
   };
+ 
+  const handleClear = () => {
+    contentRef.current.value = "";
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -44,17 +58,20 @@ export default function Home() {
             ref={contentRef}
           ></textarea>
         </div>
-
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+            className="bg-yellow-500 text-white px-4 py-2 rounded mr-2 w-28 h-10"
             onClick={handleClick}
           >
-            Sačuvaj
+            SAVE
           </button>
-          <button type="reset" className="bg-red-500 text-white px-4  rounded">
-            Očisti
+          <button 
+          type="reset"
+           className="bg-red-500 text-white px-4 py-2 rounded mr-2 w-28 h-10"
+           onClick={handleClear}
+           >
+            CLEAR
           </button>
         </div>
       </div>
