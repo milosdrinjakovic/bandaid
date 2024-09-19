@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import teleprompterService from "../../../services/telepromtper-service";
 import React from "react";
+import { Lyric, NewLyricObject } from "../../types";
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [text, setText] = useState("");
@@ -17,17 +18,17 @@ export default function Home() {
     //   textInput = contentRef.current?.value;
     // }
 
-    const newObject = {
+    const newObject: NewLyricObject = {
       content: textInput,
-      title: inputValue,
+      title: inputValue
     };
 
     try {
-      const returnedTextObj = await teleprompterService.createLyric(newObject);
+      const newLyric: Lyric = await teleprompterService.createLyric(newObject);
 
       console.log("Successful saving data");
 
-      router.push(`/teleprompter/${returnedTextObj.id}`);
+      router.push(`/teleprompter/${newLyric.id}`);
 
       if (contentRef.current) {
         // contentRef.current.value = "";

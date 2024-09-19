@@ -1,7 +1,8 @@
 export type Lyric = {
     id: String
+    number: String
     title: String
-    text: String
+    content: String
     dateCreated: String
     dateModified: String
 }
@@ -11,3 +12,8 @@ export type Error = {
     message: String
   }
   
+export type NewLyricObject = {
+    number?: String
+    title: String
+    content: String
+}

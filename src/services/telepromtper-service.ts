@@ -1,10 +1,10 @@
 import axios from "axios";
-import { Lyric } from "../app/types";
+import { Lyric, NewLyricObject } from "../app/types";
 
 const baseUrl = "http://localhost:3001/api/text";
 
-const lyricsList = () => {
-  return new Promise((res) => { 
+const lyricsList = (): Promise<Lyric[]> => {
+  return new Promise<Lyric[]>((res) => { 
     const request = axios.get(baseUrl);
     request.then((response) => {
       console.log({response})
@@ -19,7 +19,7 @@ const lyricById = async(id) => {
   return response.data
 }
 
-const createLyric = async (newObject) => {
+const createLyric = async (newObject: NewLyricObject) => {
   const response = await axios.post(baseUrl, newObject);
   return response.data;
 };
