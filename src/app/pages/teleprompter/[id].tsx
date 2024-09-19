@@ -1,20 +1,22 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import textService from "@/services/text";
+import teleprompterService from "../../../services/telepromtper-service";
 import Link from "next/link";
+import React from "react";
+import { Error } from "../../types";
 
 export default function Page() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error>();
   const params = useParams();
-  const { id } = params;
+  // const { id } = params;
 
   const fetchData = async (id) => {
     try {
       setLoading(true);
-      const response = await textService.getById(id.toString());
+      const response = await teleprompterService.lyricById(id.toString());
       console.log("Fetched object with id:", response);
       setData(response.content ? response.content : "No Data found");
       
@@ -26,11 +28,11 @@ export default function Page() {
     }
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchData(id);
-    }
-  }, [id]);
+  // useEffect(() => {
+  //   if (id) {
+  //     fetchData(id);
+  //   }
+  // }, [id]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error loading data: {error.message}</p>; // treba da se sredi
