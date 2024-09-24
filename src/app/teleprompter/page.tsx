@@ -27,9 +27,6 @@ export default function List() {
     }
   };
 
-  console.log({ data })
-
-
   React.useEffect(() => {
     getData();
   }, []);

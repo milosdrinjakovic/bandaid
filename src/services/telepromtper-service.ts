@@ -1,13 +1,11 @@
 import axios from "axios";
 import { Lyric, NewLyricObject } from "../app/types";
 
-const baseUrl = "http://localhost:3001/api/text";
+const baseUrl = "http://localhost:3001/api/teleprompter";
 
 const lyricsList = (): Promise<Lyric[]> => {
   return new Promise<Lyric[]>((res) => { 
-    const request = axios.get(baseUrl);
-    request.then((response) => {
-      console.log({response})
+    axios.get(baseUrl).then((response) => {
       res(response.data)
     })
   }) 

@@ -1,48 +1,34 @@
 "use client";
-import Image from "next/image";
-import axios from "axios";
-import { useRouter } from "next/navigation";
-
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import teleprompterService from "../../../services/telepromtper-service";
 import React from "react";
-import { Lyric, NewLyricObject } from "../../types";
+import { Lyric } from "../../types";
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [text, setText] = useState("");
-  const contentRef = useRef();
-  const router = useRouter();
-  const handleClick = async () => {
-    let textInput = "";
-    // if (contentRef?.current?.value) {
-    //   textInput = contentRef.current?.value;
-    // }
 
-    const newObject: NewLyricObject = {
-      content: textInput,
-      title: inputValue
-    };
+  const handleSubmit = async () => {
 
     try {
-      const newLyric: Lyric = await teleprompterService.createLyric(newObject);
+      await teleprompterService.createLyric({
+        title: inputValue,
+        content: text
+      });
 
       console.log("Successful saving data");
 
-      router.push(`/teleprompter/${newLyric.id}`);
-
-      if (contentRef.current) {
-        // contentRef.current.value = "";
-      }
     } catch (error) {
       console.log("Error occurred:", error);
     }
   };
 
   const handleClear = () => {
-    // contentRef.current?.value = "";
+    setInputValue("");
   };
 
-
+  const handleTextChange = (event) => {
+    setText(event.target.value)
+  }
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -80,14 +66,14 @@ export default function Home() {
             rows={10}
             className="w-full p-2 border border-gray-600 bg-slate-900 rounded"
             placeholder="Insert your text over here... "
-            // ref={contentRef}
+            onChange={handleTextChange}
           ></textarea>
         </div>
         <div className="flex justify-end">
           <button
             type="submit"
             className="bg-yellow-500 text-white px-4 py-2 rounded mr-2 w-28 h-10"
-            onClick={handleClick}
+            onClick={handleSubmit}
           >
             SAVE
           </button>
