@@ -3,10 +3,20 @@ import { useState } from "react";
 import teleprompterService from "../../../services/telepromtper-service";
 import React from "react";
 import { Lyric } from "../../types";
+import { useRouter } from "next/navigation";
+import { toast } from 'react-hot-toast';
+
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [text, setText] = useState("");
 
+  
+  const router = useRouter()
+
+  const goToTelepromter = () => {
+    router.push("/teleprompter")
+  }
+  
   const handleSubmit = async () => {
 
     try {
@@ -16,10 +26,12 @@ export default function Home() {
       });
 
       console.log("Successful saving data");
-
+      goToTelepromter();
+      toast.success('You have created a new lyric!')
     } catch (error) {
       console.log("Error occurred:", error);
-    }
+      toast.error('There was an error when saving the lyric :( Try again.')
+    } 
   };
 
   const handleClear = () => {
@@ -35,56 +47,45 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="flex flex-col w-1/2 space-y-5">
-        <p className="text-3xl text-center">
-          Welcome to Band<span className="text-red-600">aid! </span> We are
-          here to help u{" "}
-          <span className="text-yellow-300">IN SOME POSITIONS!</span>{" "}
-        </p>
-        <p className="text-center text-2xl mt-4">
-          U can type in your text over here:{" "}
-        </p>
-        <div className="mb-4 mt-20 justify-center items-center">
-          <div className="flex flex-col text-center ">
-            <label className="mb-2 text-xl">HEADLINE</label>
-            <input
-              type="text"
-              placeholder="Insert title over here..."
-              value={inputValue}
-              onChange={handleInputChange}
-              className=" p-2 border border-gray-600 bg-slate-900 rounded"
-            />
-          </div>
-          <label className="block text-lg font-medium mb-2 mt-2 text-center">
-            TEXT
-          </label>
+    <main className="mb-4 mt-4 h-7 flex flex-col space-y-3">
+      <div className="flex flex-col">
+        <label>Title</label>
+        <input
+          type="text"
+          placeholder="Insert title here"
+          value={inputValue}
+          onChange={handleInputChange}
+          className=" p-2 border border-gray-600 bg-slate-900 rounded"
+        />
+      </div>
+      <div className="h-10">
+        <label>
+          Text
+        </label>
+        <textarea
+          id="content"
+          name="content"
+          className="w-full p-2 border text-white border-gray-600 bg-slate-900 rounded"
+          placeholder="Insert your text here"
+          onChange={handleTextChange}
+        ></textarea>
+      </div>
 
-          <textarea
-            id="content"
-            name="content"
-            rows={10}
-            className="w-full p-2 border border-gray-600 bg-slate-900 rounded"
-            placeholder="Insert your text over here... "
-            onChange={handleTextChange}
-          ></textarea>
-        </div>
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-yellow-500 text-white px-4 py-2 rounded mr-2 w-28 h-10"
-            onClick={handleSubmit}
-          >
-            SAVE
-          </button>
-          <button
-            type="reset"
-            className="bg-red-500 text-white px-4 py-2 rounded mr-2 w-28 h-10"
-            onClick={handleClear}
-          >
-            CLEAR
-          </button>
-        </div>
+      <div className="flex justify-end mt-3">
+        <button
+          type="submit"
+          className="bg-green-300 rounded mr-8 w-28 h-10"
+          onClick={handleSubmit}
+        >
+          SAVE
+        </button>
+        <button
+          type="reset"
+          className="bg-red-300 rounded w-28 h-10"
+          onClick={handleClear}
+        >
+          CLEAR
+        </button>
       </div>
     </main>
     // stranica za upis novog text-a

@@ -1,4 +1,5 @@
 import React from "react";
+import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 
@@ -9,7 +10,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="p-5 bg-zinc-400">{children}</body>
+      <body className="p-5 bg-zinc-200">
+        <Toaster position="top-center" />
+        {children}
+      </body>
     </html>
   )
 }

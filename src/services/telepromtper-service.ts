@@ -13,7 +13,9 @@ const lyricsList = (): Promise<Lyric[]> => {
 
 
 const lyricById = async(id) => {
+  console.log({id})
   const response = await axios.get(`${baseUrl}/${id}`);
+  console.log({response})
   return response.data
 }
 

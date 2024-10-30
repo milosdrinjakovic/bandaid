@@ -11,11 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useRouter } from "next/navigation";
+import { Icon, PlusIcon } from "lucide-react";
 
 
 export default function List() {
 
   const [data, setData] = React.useState<Lyric[]>([]);
+  const router = useRouter()
 
   const getData = async () => {
     try {
@@ -31,24 +34,28 @@ export default function List() {
     getData();
   }, []);
 
+  const navigateToDetailPage = (id: String) => {
+    router.push(`/teleprompter/${id}`)
+  }
+
+  const navigateToCreateLyric = () => {
+    router.push("/teleprompter/add")
+  }
 
   return (
-    <>
-      {data?.map(lyric => (
-        <Card className="m-5">
+    <div>
+      <div className="m-5 flex justify-end">
+        <button onClick={navigateToCreateLyric}><PlusIcon /></button>
+      </div>
+      {data?.map((lyric, index) => (
+        <Card key={lyric._id as Key} className="m-5 hover:bg-slate-400 cursor-pointer" 
+        onClick={() => navigateToDetailPage(lyric._id)}>
           <CardHeader>
-            <CardTitle>{lyric.title}</CardTitle>
-            <CardDescription>{lyric.id}</CardDescription>
+            <CardTitle>{index + 1} {lyric.title}</CardTitle>
           </CardHeader>
-          <CardContent>
-            {lyric.content}
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            ti si govno, purgeru
-          </CardFooter>
         </Card>
       ))}
-    </>
+    </div>
   )
 }
 

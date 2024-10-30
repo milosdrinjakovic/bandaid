@@ -1,5 +1,5 @@
 export type Lyric = {
-    id: String
+    _id: String
     number: String
     title: String
     content: String
