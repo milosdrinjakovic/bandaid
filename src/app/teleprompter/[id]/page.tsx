@@ -1,63 +1,95 @@
 "use client";
-import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 import teleprompterService from "../../../services/telepromtper-service";
-import Link from "next/link";
 import React from "react";
 import { Error, Lyric } from "../../types";
+import toast from "react-hot-toast";
+import RichTextEditor from "@/app/RichTextEditor/RichTextEditor";
+import './preview.style.scss';
+import PageLayout from "@/app/layout/pageLayout";
 
 export default function Page() {
-  const [lyric, setLyric] = useState<Lyric | null>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error>();
-  const params = useParams();
-  const { id } = params;
 
-  const fetchData = async (id) => {
-    try {
-      setLoading(true);
-      const response = await teleprompterService.lyricById(id.toString());
-      console.log("Fetched object with id:", response);
-      setLyric(response);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [inputValue, setInputValue] = useState("");
+  const [text, setText] = useState("");
 
-  useEffect(() => {
-    if (id) {
-      fetchData(id);
-    } else setLyric(null)
-  }, [id]);
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error loading data: {error.message}</p>; // treba da se sredi
-
-  const handlePlay = () => {
-
+  const router = useRouter()
+  const { id } = useParams();
+  const goToTelepromter = () => {
+    router.push("/teleprompter")
   }
 
+  useEffect(() =>{
+    teleprompterService.lyricById(id).then(lyric => {
+      setInputValue(lyric.title)
+      setText(lyric.content)
+    })
+  },[])
+
+  const handleSubmit = async () => {
+
+      try {
+        await teleprompterService.updateLyric(
+          id,
+          {
+          title: inputValue,
+          content: text
+        });
+
+        console.log("Successful saving data");
+        goToTelepromter();
+        toast.success('You have created a new lyric!')
+      } catch (error) {
+        console.log("Error occurred:", error);
+        toast.error('There was an error when saving the lyric :( Try again.')
+      }
+  };
+
+  const handleCancel = () => {
+    router.push("/teleprompter");
+  };
+
+  const handleTextChange = (value) => {
+    setText(value)
+  }
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+  };
+
   return (
-    <div>
-      {lyric && (
-        <div className="flex flex-col min-h-screen">
-          <div className="flex flex-row justify-center space-x-4 p-10 border-b text-3xl">
-            <p className="cursor-pointer" onClick={handlePlay}>Play</p>
-            <Link className="cursor-pointer" href={"/"}>Stop</Link>
-          </div>
-          <div className="flex justify-center items-center mt-5 p-4 w-full">
-            <div className="scroll-text  max-w-full p-10 text-white  text-5xl ">
-              <p>{lyric.content}</p>
-            </div>
-          </div>
-        </div>
-      )} 
-      <div>
-        Lyric not found :(
-      </div>
+    <PageLayout title="Edit lyric">
+    <div className="flex flex-col mb-5">
+      <input
+        type="text"
+        placeholder="Title"
+        value={inputValue}
+        onChange={handleInputChange}
+        className="p-2 rounded"
+      />
     </div>
+    <RichTextEditor value={text} onTextChange={handleTextChange} />
+
+    <div className="flex justify-end mt-5">
+      <button
+        type="reset"
+        className="bg-gray-300 rounded mr-5 w-28 h-10"
+        onClick={handleCancel}
+      >
+        Cancel
+      </button>
+
+      <button
+        type="submit"
+        className="bg-teal-300 rounded w-28 h-10"
+        onClick={handleSubmit}
+      >
+        Update
+      </button>
+
+    </div>
+
+  </PageLayout>
   );
 }

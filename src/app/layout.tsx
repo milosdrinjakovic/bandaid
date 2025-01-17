@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -10,9 +11,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="p-5 bg-zinc-200">
+      <body className="bg-zinc-200">
         <Toaster position="top-center" />
-        {children}
+          {children}
       </body>
     </html>
   )

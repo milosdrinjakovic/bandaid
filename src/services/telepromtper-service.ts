@@ -13,9 +13,7 @@ const lyricsList = (): Promise<Lyric[]> => {
 
 
 const lyricById = async(id) => {
-  console.log({id})
   const response = await axios.get(`${baseUrl}/${id}`);
-  console.log({response})
   return response.data
 }
 
@@ -24,4 +22,9 @@ const createLyric = async (newObject: NewLyricObject) => {
   return response.data;
 };
 
-export default { lyricsList, createLyric, lyricById }
+const updateLyric = async (id, updatedObject: NewLyricObject) => {
+  const response = await axios.put(`${baseUrl}/${id}`, updatedObject);
+  return response.data;
+};
+
+export default { lyricsList, createLyric, lyricById, updateLyric }
