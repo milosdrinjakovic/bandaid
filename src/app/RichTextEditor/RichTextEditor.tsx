@@ -29,7 +29,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ quillRef, readonly = fa
   };
 
   return (
-      <ReactQuill readOnly={readonly} ref={quillRef} value={value} onChange={handleTextChange} modules={modules} />
+      <ReactQuill placeholder="Enter text here..." readOnly={readonly} ref={quillRef} value={value} onChange={handleTextChange} modules={modules} />
   );
 };
 

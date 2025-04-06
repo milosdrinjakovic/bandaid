@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import Image from 'next/image'
-import teleprompterIcon from "../../../public/teleprompter-icon.png"
-import homeIcon from "../../../public/home-icon.png"
-import sampleIcon from "../../../public/sample-icon.png"
 import { usePathname, useRouter } from 'next/navigation';
-
+import { BandageIcon, ChevronLeftIcon, HomeIcon, MenuIcon, ScreenShareIcon } from 'lucide-react';
+import { useIsMobile } from '../../services/breakpoint-service';
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(!isMobile);
 
   const router = useRouter()
 
@@ -30,17 +28,17 @@ const Sidebar = () => {
     {
       title: "Home",
       navigateTo: "/",
-      icon: homeIcon
+      icon: <HomeIcon />
     },
     {
       title: "Teleprompter",
       navigateTo: "/teleprompter",
-      icon: teleprompterIcon
+      icon: <ScreenShareIcon />
     },
     {
       title: "About",
       navigateTo: "/about",
-      icon: sampleIcon
+      icon: <BandageIcon />
     }
   ]
 
@@ -50,70 +48,42 @@ const Sidebar = () => {
       <div
         // Conditional class based on isOpen 
         // state to control width and visibility
-        className={`bg-blue-950 text-white 
+        className={`bg-stone-900 text-white 
                     h-screen transition-all 
                     duration-300 
+                    border-r-8
+                    border-purple-800
+                    box-content
                     ${isOpen ? 'w-64' : 'w-16 overflow-hidden'
           }`}>
         {/* Sidebar content */}
         <div className="flex flex-col">
-
-          <div className={`flex-1 mt-3`}>
             {/* Button to toggle sidebar */}
-            <div className={`flex mb-4 duration-300 ${isOpen ? 'ml-52' : 'ml-2.5'}`}>
+            <div className='flex '>
               <button
-                className="flex justify-center items-center bg-blue-950 hover:bg-blue-900 
-                       text-white font-bold rounded-full h-10 w-10"
+                className={`flex flex-1 ${isOpen ? 'justify-end pr-4' : 'justify-center'} bg-stone-900 text-white hover:bg-white duration-300 hover:text-stone-900 pt-4 pb-4`}
                 onClick={() => setIsOpen(!isOpen)}>
                 {/* Toggle icon based on isOpen state */}
-                {isOpen ? (
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16m-7 6h7" />
-                  </svg>
-                )}
+                <div className="flex flex-row">
+                  {isOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+                </div> 
               </button>
             </div>
 
             {navItems.map(item => (
 
-              <div key={item.title} className={`w-full p-3 text-white 
-                        hover:bg-blue-900
-                          duration-300
+              <div key={item.title} className={`w-full px-3 py-6
+                          hover:bg-white hover:text-stone-900 duration-300
                           flex flex-row items-center cursor-pointer
-                          ${pathSubstring === item.navigateTo ? "bg-blue-900" : ""}`}
+                          ${pathSubstring === item.navigateTo ? "bg-purple-800 text-white" : ""}`}
                 onClick={() => goToRoute(item.navigateTo)}>
-                <Image
-                  src={item.icon}
-                  width={40}
-                  height={40}
-                  alt={item.title}
-                  style={{ marginRight: "12px" }}
-                />
-                {item.title}
-
+                <div className="pl-2 pr-5">
+                  {item.icon}
+                </div>
+                  {item.title}
               </div>
             ))}
-          </div>
+          
         </div>
 
       </div>

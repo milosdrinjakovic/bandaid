@@ -95,10 +95,11 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: hidden
+  overflow: hidden;
+  height: 100%;
 }
 
 .ql-editor {
   flex: 1; /* Expands to take the remaining space in .expandable */
   overflow-y: auto; /* Allows scrolling within .field if content exceeds */
-}
+} 

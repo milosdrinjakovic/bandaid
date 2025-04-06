@@ -1,10 +1,11 @@
 export type Lyric = {
     _id: string
-    number: string
     title: string
     content: string
+    scrollSpeed: number
     dateCreated: string
     dateModified: string
+    order: number
 }
 
 export type Error = {
@@ -13,7 +14,7 @@ export type Error = {
   }
   
 export type NewLyricObject = {
-    number?: string
     title: string
     content: string
+    scrollSpeed: number
 }

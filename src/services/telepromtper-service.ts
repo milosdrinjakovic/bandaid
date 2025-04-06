@@ -27,4 +27,14 @@ const updateLyric = async (id, updatedObject: NewLyricObject) => {
   return response.data;
 };
 
-export default { lyricsList, createLyric, lyricById, updateLyric }
+const updateLyricsOrder = async (ids: String[]) => {
+  const response = await axios.put(`${baseUrl}/`, ids);
+  return response.data;
+};
+
+const deleteLyric = async (id) => {
+  const response = await axios.delete(`${baseUrl}/${id}`);
+  return response.data;
+}
+
+export default { lyricsList, createLyric, lyricById, updateLyric, updateLyricsOrder, deleteLyric }
