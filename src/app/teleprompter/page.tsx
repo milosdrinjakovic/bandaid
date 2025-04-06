@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useRouter } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, PlayIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, MinusIcon, PlayIcon, PlusIcon } from "lucide-react";
 import PageLayout from "../layout/pageLayout";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -51,7 +51,6 @@ export default function List() {
   const handleSelect = (e: Event, lyric: Lyric) => {
     e.stopPropagation(); // Prevent the click from propagating to the card
     setSelectedLyric(lyric);
-    setScrollSpeed(lyric.scrollSpeed);
     handleFullScreen.enter();
   }
 
@@ -70,7 +69,7 @@ export default function List() {
         if (scrollElement.scrollTop + scrollElement.clientHeight < scrollElement.scrollHeight) {
           scrollElement.scrollTop += 1; // Increment scroll
         }
-      }, 100 / scrollSpeed);
+      }, 1000 / scrollSpeed);
     };
 
     if (isScrolling) {
@@ -78,7 +77,7 @@ export default function List() {
     }
 
     return () => clearInterval(scrollInterval); // Cleanup
-  }, [handleFullScreen.active, isScrolling]);
+  }, [handleFullScreen.active, isScrolling, scrollSpeed]);
 
   const updateLyricsOrder = async (reordered) => {
     const orderIds = reordered.map(e => e._id);
@@ -155,6 +154,11 @@ export default function List() {
     }
   }
 
+  const handleSpeedUpdate = (mode: 'slower' | 'faster') => {
+    let newScrollSpeed = mode === 'slower' ? scrollSpeed <= 20 ? 20 : scrollSpeed - 20 : scrollSpeed >= 280 ? 300 : scrollSpeed + 20;
+    setScrollSpeed(newScrollSpeed);
+  }
+
   return (
     <PageLayout title="Teleprompter">
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -175,8 +179,8 @@ export default function List() {
                         /translate\(([^,]+),\s*([^,]+)\)/,
                         (_, x, y) => `translate(0px, ${y})`
                       ),
-                    }; 
-                   return <div
+                    };
+                    return <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
@@ -201,15 +205,13 @@ export default function List() {
           )}
         </Droppable>
       </DragDropContext>
-      
+
       <div className="cursor-pointer absolute right-16 bottom-10 md:right-32 md:bottom-20 bg-purple-800 text-white hover:bg-white hover:text-stone-900 duration-300 border-2 border-white rounded-full w-16 h-16 flex justify-center">
         <button onClick={navigateToCreateLyric}><PlusIcon /></button>
       </div>
 
       <FullScreen handle={handleFullScreen}>
-
         {handleFullScreen.active && selectedLyric?.content ?
-
           <div
             ref={scrollRef}
             onClick={() => setIsScrolling(!isScrolling)}
@@ -220,6 +222,31 @@ export default function List() {
         {/* Floating Buttons */}
         {handleFullScreen.active && (
           <>
+            {
+              <div className="flex">
+                <button
+                  onClick={() => handleSpeedUpdate("slower")}
+                  className="absolute top-5 right-40 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
+                >
+                  <div className="flex flex-row gap-2">
+                    <MinusIcon />
+                    Slower
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleSpeedUpdate("faster")}
+                  className="absolute top-5 right-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
+                >
+                  <div className="flex flex-row gap-2">
+                    Faster
+                    <PlusIcon />
+                  </div>
+                </button>
+              </div>
+            }
+
+
+
             {selectedLyric?.order.valueOf() !== 0 &&
               <button
                 onClick={goToPreviousLyric}

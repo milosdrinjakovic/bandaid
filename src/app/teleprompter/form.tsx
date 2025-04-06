@@ -18,7 +18,7 @@ export default function Form(props: FormPageProps) {
   const { mode } = props;
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [scrollSpeed, setScrollSpeed] = useState(1);
+  const [scrollSpeed, setScrollSpeed] = useState(10);
 
   const router = useRouter()
   const { id } = useParams();
@@ -27,52 +27,53 @@ export default function Form(props: FormPageProps) {
   }
 
   useEffect(() => {
-    if(mode === 'edit'){
+    if (mode === 'edit') {
       teleprompterService.lyricById(id).then(lyric => {
-        setTitle(lyric.title)
-        setContent(lyric.content)
-        setScrollSpeed(lyric.scrollSpeed)
+        const { title, content, scrollSpeed } = lyric;
+        setTitle(title)
+        setContent(content)
+        setScrollSpeed(scrollSpeed || 10)
       })
     }
   }, [])
 
-  const handleSubmit = async () => {
-    if(id){
-      try {
-        await teleprompterService.updateLyric(
-          id,
-          {
+  const onSubmit = async () => {
+      if (mode === "edit") {
+        try {
+          await teleprompterService.updateLyric(
+            id,
+            {
+              title: title,
+              content: content,
+              scrollSpeed: scrollSpeed
+            });
+
+          console.log("Successful saving data");
+          goToTelepromter();
+          toast.success('You have sucessfully edited the lyric!')
+        } catch (error) {
+          console.log("Error occurred:", error);
+          toast.error('There was an error when editing the lyric :( Try again.')
+        }
+      } else {
+        try {
+          await teleprompterService.createLyric({
             title: title,
             content: content,
             scrollSpeed: scrollSpeed
           });
 
-        console.log("Successful saving data");
-        goToTelepromter();
-        toast.success('You have sucessfully edited the lyric!')
-      } catch (error) {
-        console.log("Error occurred:", error);
-        toast.error('There was an error when editing the lyric :( Try again.')
+          console.log("Successful saving data");
+          goToTelepromter();
+          toast.success('You have created a new lyric!')
+        } catch (error) {
+          console.log("Error occurred:", error);
+          toast.error('There was an error when saving the lyric :( Try again.')
+        }
       }
-    } else {
-      try {
-        await teleprompterService.createLyric({
-          title: title,
-          content: content,
-          scrollSpeed: scrollSpeed
-        });
-
-        console.log("Successful saving data");
-        goToTelepromter();
-        toast.success('You have created a new lyric!')
-      } catch (error) {
-        console.log("Error occurred:", error);
-        toast.error('There was an error when saving the lyric :( Try again.')
-      }
-    }
   };
 
-  const handleCancel = () => {
+  const handleBack = () => {
     router.push("/teleprompter");
   };
 
@@ -85,7 +86,10 @@ export default function Form(props: FormPageProps) {
   };
 
   const handleScrollSpeedInputChange = (event) => {
-    setScrollSpeed(event.target.value);
+    const speed = event.target.value;
+    if (speed > 0) {
+      setScrollSpeed(speed);
+    }
   };
 
   const deleteLyric = async () => {
@@ -101,31 +105,31 @@ export default function Form(props: FormPageProps) {
 
   const deleteDialog = () => {
     return (
-        <Dialog>
+      <Dialog>
         <DialogTrigger>
-            <TrashIcon className="text-red-600 cursor-pointer hover:text-red-400 duration-300"/>
+          <TrashIcon className="text-red-600 cursor-pointer hover:text-red-400 duration-300" />
         </DialogTrigger>
         <DialogContent>
-            <DialogHeader>
+          <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
-                This will remove the lyric from your playlist.
+              This will remove the lyric from your playlist.
             </DialogDescription>
-            </DialogHeader>
-        <DialogFooter>
+          </DialogHeader>
+          <DialogFooter>
             <div className="flex justify-end mt-10">
-                <DialogClose>
-                    <button type="reset" className="bg-gray-300 rounded mr-5 w-28 h-10">
-                        Close
-                    </button>
-                </DialogClose>
-                <button type="submit" className="bg-teal-300 rounded w-28 h-10" onClick={deleteLyric}>
-                    Confirm
+              <DialogClose>
+                <button type="reset" className="bg-gray-300 rounded mr-5 w-28 h-10">
+                  Close
                 </button>
+              </DialogClose>
+              <button type="submit" className="bg-teal-300 rounded w-28 h-10" onClick={deleteLyric}>
+                Confirm
+              </button>
             </div>
-        </DialogFooter>
+          </DialogFooter>
         </DialogContent>
-        </Dialog>
+      </Dialog>
     )
   }
 
@@ -150,6 +154,7 @@ export default function Form(props: FormPageProps) {
           type="number"
           placeholder="Speed"
           value={scrollSpeed}
+          min={0}
           onChange={handleScrollSpeedInputChange}
           className="text-stone-900 p-2 rounded w-20 mr-6"
         />
@@ -163,17 +168,16 @@ export default function Form(props: FormPageProps) {
       <div className="flex justify-end mt-10">
         <button
           type="reset"
-          className="bg-gray-300 rounded mr-5 w-28 h-10"
-          onClick={handleCancel}
+          className="bg-stone-400 text-white hover:bg-red-400 hover:text-stone-900 duration-300 rounded mr-5 w-28 h-10"
+          onClick={handleBack}
         >
-          Cancel
+          Back
         </button>
 
         <button
           type="submit"
-          className="bg-teal-300 rounded w-28 h-10"
-          onClick={handleSubmit}
-        >
+          onClick={onSubmit}
+          className="bg-purple-800 text-white hover:bg-purple-400 hover:text-stone-900 duration-300 rounded w-28 h-10">
           Save
         </button>
 
