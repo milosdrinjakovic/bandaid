@@ -1,6 +1,7 @@
 "use client"
 import React from "react";
 import { Toaster } from "react-hot-toast";
+import { UserProvider } from '@auth0/nextjs-auth0/client';
 
 import "./globals.css";
 
@@ -12,10 +13,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <body className="bg-zinc-200">
-        <Toaster position="top-center" />
-          {children}
-      </body>
+      <UserProvider>
+        <body className="bg-zinc-200">
+          <a href="/api/auth/login">Login</a>
+          <a href="/api/auth/logout">Log out</a>
+          <Toaster position="top-center" />
+            {children}
+        </body>
+      </UserProvider>
     </html>
   )
 }

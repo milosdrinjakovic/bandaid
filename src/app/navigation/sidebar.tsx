@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { BandageIcon, ChevronLeftIcon, HomeIcon, MenuIcon, ScreenShareIcon } from 'lucide-react';
+import { BandageIcon, ChevronLeftIcon, ChevronRightIcon, HomeIcon, ScreenShareIcon } from 'lucide-react';
 import { useIsMobile } from '../../services/breakpoint-service';
 
 const Sidebar = () => {
@@ -65,7 +65,7 @@ const Sidebar = () => {
                 onClick={() => setIsOpen(!isOpen)}>
                 {/* Toggle icon based on isOpen state */}
                 <div className="flex flex-row">
-                  {isOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+                  {isOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                 </div> 
               </button>
             </div>
