@@ -5,6 +5,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   HomeIcon,
+  LogOutIcon,
   ScreenShareIcon,
 } from "lucide-react";
 import { useIsMobile } from "../../services/breakpoint-service";
@@ -98,8 +99,16 @@ const Sidebar = () => {
               {item.title}
             </div>
           ))}
-
-          {isOpen && <a href="/api/auth/logout" className="bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400 rounded-full py-2 hover:cursor-pointer w-2/3 transition duration-300 text-center">Logout</a>}
+            {user && (
+            <a href="/api/auth/logout">
+              <div className={`w-full px-3 py-6
+                            hover:bg-white hover:text-stone-900 duration-300
+                            flex flex-row items-center cursor-pointer`}>
+                <div className="pl-2 pr-5"><LogOutIcon /></div>
+                   Logout
+                </div>
+              </a>)
+            }
         </div>
         
       </div>
