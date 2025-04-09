@@ -15,8 +15,7 @@ export default function RootLayout({
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <UserProvider>
         <body className="bg-zinc-200">
-          <a href="/api/auth/login">Login</a>
-          <a href="/api/auth/logout">Log out</a>
+        
           <Toaster position="top-center" />
             {children}
         </body>
