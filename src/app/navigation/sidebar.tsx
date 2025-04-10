@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -5,8 +6,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   HomeIcon,
-  LogOutIcon,
   ScreenShareIcon,
+  LogOut
 } from "lucide-react";
 import { useIsMobile } from "../../services/breakpoint-service";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -43,14 +44,23 @@ const Sidebar = () => {
       title: "Teleprompter",
       navigateTo: "/teleprompter",
       icon: <ScreenShareIcon />,
+      protected: true
     },
     {
       title: "About",
       navigateTo: "/about",
       icon: <BandageIcon />,
     },
+     { 
+      title: "logout",
+      navigateTo: "/api/auth/logout",
+      icon: <LogOut />,
+      protected: true
+    },
   ];
-
+  const filteredNavItems = navItems.filter(
+    (item) => !item.protected || user
+  );
   return (
     <div className="flex">
       {/* Sidebar */}
@@ -82,7 +92,7 @@ const Sidebar = () => {
             </button>
           </div>
 
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <div
               key={item.title}
               className={`w-full px-3 py-6
@@ -99,16 +109,8 @@ const Sidebar = () => {
               {item.title}
             </div>
           ))}
-            {user && (
-            <a href="/api/auth/logout">
-              <div className={`w-full px-3 py-6
-                            hover:bg-white hover:text-stone-900 duration-300
-                            flex flex-row items-center cursor-pointer`}>
-                <div className="pl-2 pr-5"><LogOutIcon /></div>
-                   Logout
-                </div>
-              </a>)
-            }
+
+          
         </div>
         
       </div>
