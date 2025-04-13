@@ -8,7 +8,7 @@ if (!serviceUrl) {
   throw new Error("Service URL not found!");
 }
 
-const createUserData = (token): Promise<UserData> => {
+const createUserData = (): Promise<UserData> => {
   return new Promise<UserData>((res) => { 
     axios.post(serviceUrl, {
      
