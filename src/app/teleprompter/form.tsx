@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import teleprompterService from "../../services/telepromtper-service";
 import React from "react";
 import toast from "react-hot-toast";
-import RichTextEditor from "@/app/RichTextEditor/RichTextEditor";
+import RichTextEditor from "@/components/RichTextEditor";
 import PageLayout from "@/app/layout/pageLayout";
 import { InfoIcon, TrashIcon } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FormPageProps {
   mode: 'create' | 'edit'
@@ -19,58 +21,64 @@ export default function Form(props: FormPageProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [scrollSpeed, setScrollSpeed] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter()
   const { id } = useParams();
-  const goToTelepromter = () => {
+  const goHome = () => {
     router.push("/teleprompter")
   }
 
   useEffect(() => {
     if (mode === 'edit') {
-      teleprompterService.lyricById(id).then(lyric => {
-        const { title, content, scrollSpeed } = lyric;
-        setTitle(title)
-        setContent(content)
-        setScrollSpeed(scrollSpeed || 10)
-      })
+      setIsLoading(true);
+      setTimeout(() => {
+        teleprompterService.getTextById(id).then(text => {
+          const { title, content, scrollSpeed } = text;
+          setTitle(title)
+          setContent(content)
+          setScrollSpeed(scrollSpeed || 10)
+        }).finally(() => {
+          setIsLoading(false);
+        })
+      }, 2000)
     }
   }, [])
 
   const onSubmit = async () => {
-      if (mode === "edit") {
-        try {
-          await teleprompterService.updateLyric(
-            id,
-            {
-              title: title,
-              content: content,
-              scrollSpeed: scrollSpeed
-            });
-
-          console.log("Successful saving data");
-          goToTelepromter();
-          toast.success('You have sucessfully edited the lyric!')
-        } catch (error) {
-          console.log("Error occurred:", error);
-          toast.error('There was an error when editing the lyric :( Try again.')
-        }
-      } else {
-        try {
-          await teleprompterService.createLyric({
+    if (mode === "edit") {
+      try {
+        await teleprompterService.updateText(
+          id,
+          {
             title: title,
             content: content,
             scrollSpeed: scrollSpeed
           });
 
-          console.log("Successful saving data");
-          goToTelepromter();
-          toast.success('You have created a new lyric!')
-        } catch (error) {
-          console.log("Error occurred:", error);
-          toast.error('There was an error when saving the lyric :( Try again.')
-        }
+        console.log("Successful saving data");
+        goHome();
+        toast.success('You have sucessfully edited the text!')
+      } catch (error) {
+        console.log("Error occurred:", error);
+        toast.error('There was an error when editing the text :( Try again.')
       }
+    } else {
+      try {
+        await teleprompterService.createText({
+          title: title,
+          content: content,
+          scrollSpeed: scrollSpeed
+        });
+
+        console.log("Successful saving data");
+        goHome();
+        toast.success('You have created a new text!')
+      } catch (error) {
+        console.log("Error occurred:", error);
+        toast.error('There was an error when saving the text :( Try again.')
+      }
+    }
   };
 
   const handleBack = () => {
@@ -92,14 +100,14 @@ export default function Form(props: FormPageProps) {
     }
   };
 
-  const deleteLyric = async () => {
+  const deleteText = async () => {
     try {
-      await teleprompterService.deleteLyric(id).then(() => console.log('hello'));
-      goToTelepromter();
-      toast.success('You have sucessfully deleted the lyric!')
+      await teleprompterService.deleteText(id);
+      goHome();
+      toast.success('You have sucessfully deleted the text!')
     } catch (error) {
       console.log("Error occurred:", error);
-      toast.error('There was an error when deleting the lyric :( Try again.')
+      toast.error('There was an error when deleting the text :( Try again.')
     }
   }
 
@@ -113,7 +121,7 @@ export default function Form(props: FormPageProps) {
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
-              This will remove the lyric from your playlist.
+              This will remove this item from your text list.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -123,7 +131,7 @@ export default function Form(props: FormPageProps) {
                   Close
                 </button>
               </DialogClose>
-              <button type="submit" className="bg-teal-300 rounded w-28 h-10" onClick={deleteLyric}>
+              <button type="submit" className="bg-teal-300 rounded w-28 h-10" onClick={deleteText}>
                 Confirm
               </button>
             </div>
@@ -133,55 +141,70 @@ export default function Form(props: FormPageProps) {
     )
   }
 
-
   return (
-    <PageLayout title={mode === 'edit' ? "Edit lyric" : "Create lyric"}>
-      <div className="flex flex-col mb-5">
-        <div className="flex flex-row justify-between items-center">
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={handleTitleChange}
-            className="p-2 rounded mr-6 w-full md:w-1/2 text-stone-900"
-          />
-          {mode === 'edit' && deleteDialog()}
-        </div>
-      </div>
+    <PageLayout title={mode === 'edit' ? "Edit text" : "Create text"}>
+      {isLoading ? (
+        <Skeleton className="w-full h-full bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400" />
+      ) : (
+        <>
+          <div className="flex flex-col mb-5">
+            <div className="flex flex-row justify-between items-center">
+              <input
+                type="text"
+                placeholder="Title goes here"
+                value={title}
+                onChange={handleTitleChange}
+                className="p-2 rounded mr-6 w-full md:w-1/2 text-stone-900"
+              />
 
-      <div className="mb-5 flex items-center">
-        <input
-          type="number"
-          placeholder="Speed"
-          value={scrollSpeed}
-          min={0}
-          onChange={handleScrollSpeedInputChange}
-          className="text-stone-900 p-2 rounded w-20 mr-6"
-        />
-        {/* TODO: Add a tooltip to show how this input above is used. */}
-        <InfoIcon />
-      </div>
+              {mode === 'edit' && deleteDialog()}
+            </div>
+          </div>
 
-      <div className="h-full text-stone-900 bg-white overflow-y-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-white">
-        <RichTextEditor value={content} onTextChange={handleContentChange} />
-      </div>
-      <div className="flex justify-end mt-10">
-        <button
-          type="reset"
-          className="bg-stone-400 text-white hover:bg-red-400 hover:text-stone-900 duration-300 rounded mr-5 w-28 h-10"
-          onClick={handleBack}
-        >
-          Back
-        </button>
+          <div className="mb-5 flex items-center">
+            <input
+              type="number"
+              placeholder="Speed"
+              value={scrollSpeed}
+              min={0}
+              onChange={handleScrollSpeedInputChange}
+              className="text-stone-900 p-2 rounded w-20 mr-6"
+            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <InfoIcon />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Higher the number, higher the speed of scrolling</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-        <button
-          type="submit"
-          onClick={onSubmit}
-          className="bg-purple-800 text-white hover:bg-purple-400 hover:text-stone-900 duration-300 rounded w-28 h-10">
-          Save
-        </button>
+          </div>
 
-      </div>
+          <div className="h-full text-stone-900 bg-white overflow-y-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-white">
+            <RichTextEditor value={content} onTextChange={handleContentChange} />
+          </div>
+          <div className="flex justify-end mt-10">
+            <button
+              type="reset"
+              className="bg-stone-400 text-white hover:bg-stone-500 hover:text-stone-900 duration-300 rounded mr-5 w-28 h-10"
+              onClick={handleBack}
+            >
+              Back
+            </button>
+
+            <button
+              type="submit"
+              onClick={onSubmit}
+              className="bg-purple-700 text-white hover:bg-purple-400 hover:text-stone-900 duration-300 rounded w-28 h-10"
+            >
+              Save
+            </button>
+          </div>
+        </>
+      )}
     </PageLayout>
   );
 }

@@ -1,7 +1,7 @@
 "use client"
 import React, { Key, useEffect, useRef } from "react";
 import teleprompterService from "../../services/telepromtper-service";
-import { Lyric } from "../types";
+import { Text, UserData } from "../types";
 import isEqual from "lodash/isEqual"
 
 import {
@@ -15,42 +15,74 @@ import PageLayout from "../layout/pageLayout";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import toast from "react-hot-toast";
-
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function List() {
 
-  const [data, setData] = React.useState<Lyric[]>([]);
-  const [selectedLyric, setSelectedLyric] = React.useState<Lyric>();
-  const router = useRouter()
-  const handleFullScreen = useFullScreenHandle();
+  const [userData, setUserData] = React.useState<UserData>();
+  const [texts, setTexts] = React.useState<Text[]>([]);
+  const [selectedText, setSelectedText] = React.useState<Text>();
   const [isScrolling, setIsScrolling] = React.useState(true);
   const [scrollSpeed, setScrollSpeed] = React.useState(10);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter()
+  const handleFullScreen = useFullScreenHandle();
 
-  const getData = async () => {
+  const getUserData = async () => {
     try {
-      await teleprompterService.lyricsList().then(response =>
-        setData((response as unknown as Lyric[]).sort((a, b) => a.order - b.order))
-      );
+      await teleprompterService.getUserData().then(response => {
+        setUserData(response);
+      });
     } catch (error) {
       console.log(error);
     }
   };
 
+  const createUserData = async () => {
+    try {
+      await teleprompterService.createUserData().then(response => {
+        setUserData(response);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getTextsForUser = async () => {
+    try {
+      await teleprompterService.getTextsByUserId().then(response => {
+        setTexts(response);
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   React.useEffect(() => {
-    getData();
+    setIsLoading(true);
+    setTimeout(() => {
+      getUserData();
+      getTextsForUser();
+    }, 2000)
+
   }, [])
 
-  const navigateToDetailPage = (id) => {
+  const goDetailPage = (id) => {
     router.push(`/teleprompter/${id}`)
   }
 
-  const navigateToCreateLyric = () => {
+  const goCreateText = () => {
+    if (!userData) {
+      createUserData();
+    }
     router.push("/teleprompter/add")
   }
 
-  const handleSelect = (e: Event, lyric: Lyric) => {
+  const handleSelect = (e: Event, text: Text) => {
     e.stopPropagation(); // Prevent the click from propagating to the card
-    setSelectedLyric(lyric);
+    setSelectedText(text);
     handleFullScreen.enter();
   }
 
@@ -79,12 +111,11 @@ export default function List() {
     return () => clearInterval(scrollInterval); // Cleanup
   }, [handleFullScreen.active, isScrolling, scrollSpeed]);
 
-  const updateLyricsOrder = async (reordered) => {
+  const updateTextsOrder = async (reordered) => {
     const orderIds = reordered.map(e => e._id);
 
     try {
-      await teleprompterService.updateLyricsOrder(orderIds);
-      console.log("Successful updated order");
+      await teleprompterService.updateTextsOrder(orderIds);
 
     } catch (error) {
       console.log("Error occurred:", error);
@@ -95,14 +126,14 @@ export default function List() {
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
-    const reordered = Array.from(data);
+    const reordered = Array.from(texts);
     const [removed] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, removed);
 
-    const areSame = isEqual(data, reordered);
+    const areSame = isEqual(texts, reordered);
     if (!areSame) {
-      setData(reordered);
-      updateLyricsOrder(reordered);
+      setTexts(reordered);
+      updateTextsOrder(reordered);
     }
   };
 
@@ -134,22 +165,22 @@ export default function List() {
     return tempDiv.innerHTML;
   }
 
-  const goToNextLyric = () => {
-    var nextLyricOrderNumber = selectedLyric?.order.valueOf ? selectedLyric.order + 1 : null;
-    if (nextLyricOrderNumber) {
-      const nextLyric = data.find(lyric => lyric.order === nextLyricOrderNumber)
-      if (nextLyric) {
-        setSelectedLyric(nextLyric);
+  const goToNextText = () => {
+    var nextTextOrderNumber = selectedText?.order?.valueOf ? selectedText.order + 1 : null;
+    if (nextTextOrderNumber) {
+      const nextText = texts.find(text => text.order === nextTextOrderNumber)
+      if (nextText) {
+        setSelectedText(nextText);
       }
     }
   }
 
-  const goToPreviousLyric = () => {
-    var previousLyricOrderNumber = selectedLyric?.order.valueOf ? selectedLyric.order - 1 : null;
-    if (previousLyricOrderNumber?.valueOf) {
-      const prevLyric = data.find(lyric => lyric.order === previousLyricOrderNumber)
-      if (prevLyric) {
-        setSelectedLyric(prevLyric);
+  const goToPreviousText = () => {
+    var previousTextOrderNumber = selectedText?.order?.valueOf ? selectedText.order - 1 : null;
+    if (previousTextOrderNumber?.valueOf) {
+      const prevText = texts.find(text => text.order === previousTextOrderNumber)
+      if (prevText) {
+        setSelectedText(prevText);
       }
     }
   }
@@ -161,119 +192,139 @@ export default function List() {
 
   return (
     <PageLayout title="Teleprompter">
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="lyric-list">
-          {(provided) => (
-            <div
-              className="overflow-y-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-white flex flex-col"
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {data?.map((lyric, index) => (
-                <Draggable key={lyric._id} draggableId={lyric._id} index={index}>
-                  {(provided) => {
-                    const style = {
-                      ...provided.draggableProps.style,
-                      //Used to fix the scrolling across Y axis only
-                      transform: provided.draggableProps.style?.transform?.replace(
-                        /translate\(([^,]+),\s*([^,]+)\)/,
-                        (_, x, y) => `translate(0px, ${y})`
-                      ),
-                    };
-                    return <div
+      {isLoading ? (
+        <div className="flex flex-col gap-6 pt-6 overflow-y-auto">
+          {[1,2,3,4,5,6,7,8].map(() => (
+            <Skeleton className="w-full h-24 bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400" />
+          ))}
+        </div>
+        
+      ) : (
+        <>
+          {texts && texts.length !== 0 ? (
+            <>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="text-list">
+                  {(provided) => (
+                    <div
+                      className="overflow-y-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-white flex flex-col"
+                      {...provided.droppableProps}
                       ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      style={style}
-                      className="mt-5"
                     >
-                      <Card key={lyric._id as Key} onClick={() => navigateToDetailPage(lyric._id)} className="mr-2 duration-300 bg-stone-900 hover:bg-purple-800 text-white  cursor-pointer">
-                        <CardHeader className="flex flex-row gap-3">
-                          <div>
-                            <PlayIcon className="text-2xl duration-300 hover:text-violet-400" onClick={(e: any) => handleSelect(e, lyric)} />
-                          </div>
-                          <CardTitle>{index + 1} {lyric.title}</CardTitle>
-                        </CardHeader>
-                      </Card>
+                      {texts?.map((text, index) => (
+                        <Draggable key={text._id} draggableId={text._id!!} index={index}>
+                          {(provided) => {
+                            const style = {
+                              ...provided.draggableProps.style,
+                              //Used to fix the scrolling across Y axis only
+                              transform: provided.draggableProps.style?.transform?.replace(
+                                /translate\(([^,]+),\s*([^,]+)\)/,
+                                (_, x, y) => `translate(0px, ${y})`
+                              ),
+                            };
+                            return <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={style}
+                              className="mt-5"
+                            >
+                              <Card key={text._id as Key} onClick={() => goDetailPage(text._id)} className="mr-2 duration-300 bg-stone-900 hover:bg-purple-800 text-white  cursor-pointer">
+                                <CardHeader className="flex flex-row gap-3">
+                                  <div>
+                                    <PlayIcon className="text-2xl duration-300 hover:text-violet-400" onClick={(e: any) => handleSelect(e, text)} />
+                                  </div>
+                                  <CardTitle>{index + 1} {text.title}</CardTitle>
+                                </CardHeader>
+                              </Card>
+                            </div>
+                          }}
+                        </Draggable>
+                      ))}
+
+                      {provided.placeholder}
                     </div>
-                  }}
-                </Draggable>
-              ))}
+                  )}
+                </Droppable>
+              </DragDropContext>
 
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-
-      <div className="cursor-pointer absolute right-16 bottom-10 md:right-32 md:bottom-20 bg-purple-800 text-white hover:bg-white hover:text-stone-900 duration-300 border-2 border-white rounded-full w-16 h-16 flex justify-center">
-        <button onClick={navigateToCreateLyric}><PlusIcon /></button>
-      </div>
-
-      <FullScreen handle={handleFullScreen}>
-        {handleFullScreen.active && selectedLyric?.content ?
-          <div
-            ref={scrollRef}
-            onClick={() => setIsScrolling(!isScrolling)}
-            className="text-white overflow-auto text-2xl md:text-5xl pt-10 pb-10 h-full px-2 md:p-20 select-none"
-            dangerouslySetInnerHTML={{ __html: removeBackgroundColors(selectedLyric.content) }} />
-          : null}
-
-        {/* Floating Buttons */}
-        {handleFullScreen.active && (
-          <>
-            {
-              <div className="flex">
-                <button
-                  onClick={() => handleSpeedUpdate("slower")}
-                  className="absolute top-5 right-40 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
-                >
-                  <div className="flex flex-row gap-2">
-                    <MinusIcon />
-                    Slower
-                  </div>
-                </button>
-                <button
-                  onClick={() => handleSpeedUpdate("faster")}
-                  className="absolute top-5 right-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
-                >
-                  <div className="flex flex-row gap-2">
-                    Faster
-                    <PlusIcon />
-                  </div>
-                </button>
+              <div className="cursor-pointer absolute right-16 bottom-10 md:right-32 md:bottom-20 bg-purple-700 text-white hover:bg-white hover:text-stone-900 duration-300 border-2 border-white rounded-full w-16 h-16 flex justify-center">
+                <button onClick={goCreateText}><PlusIcon /></button>
               </div>
-            }
+
+              <FullScreen handle={handleFullScreen}>
+                {handleFullScreen.active && selectedText?.content ?
+                  <div
+                    ref={scrollRef}
+                    onClick={() => setIsScrolling(!isScrolling)}
+                    className="text-white overflow-auto text-2xl md:text-5xl pt-10 pb-10 h-full px-2 md:p-20 select-none"
+                    dangerouslySetInnerHTML={{ __html: removeBackgroundColors(selectedText.content) }} />
+                  : null}
+
+                {/* Floating Buttons */}
+                {handleFullScreen.active && (
+                  <>
+                    {
+                      <div className="flex">
+                        <button
+                          onClick={() => handleSpeedUpdate("slower")}
+                          className="absolute top-5 right-40 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
+                        >
+                          <div className="flex flex-row gap-2">
+                            <MinusIcon />
+                            Slower
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleSpeedUpdate("faster")}
+                          className="absolute top-5 right-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
+                        >
+                          <div className="flex flex-row gap-2">
+                            Faster
+                            <PlusIcon />
+                          </div>
+                        </button>
+                      </div>
+                    }
 
 
 
-            {selectedLyric?.order.valueOf() !== 0 &&
-              <button
-                onClick={goToPreviousLyric}
-                className="absolute bottom-5 left-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
-              >
-                <div className="flex flex-row gap-2">
-                  <ArrowLeftIcon />
-                  Previous
-                </div>
-              </button>
-            }
+                    {selectedText?.order?.valueOf() !== 1 &&
+                      <button
+                        onClick={goToPreviousText}
+                        className="absolute bottom-5 left-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
+                      >
+                        <div className="flex flex-row gap-2">
+                          <ArrowLeftIcon />
+                          Previous
+                        </div>
+                      </button>
+                    }
 
-            {selectedLyric?.order.valueOf() !== data.length - 1 &&
-              <button
-                onClick={goToNextLyric}
-                className="absolute bottom-5 right-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
-              >
-                <div className="flex flex-row gap-2">
-                  <ArrowRightIcon />
-                  Next
-                </div>
-              </button>
-            }
-          </>
-        )}
+                    {selectedText?.order?.valueOf() !== texts.length &&
+                      <button
+                        onClick={goToNextText}
+                        className="absolute bottom-5 right-10 bg-slate-950 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg border-2 border-white"
+                      >
+                        <div className="flex flex-row gap-2">
+                          <ArrowRightIcon />
+                          Next
+                        </div>
+                      </button>
+                    }
+                  </>
+                )}
 
-      </FullScreen>
+              </FullScreen>
+            </>)
+            :
+            <>
+              <div>Looks like you don't have any texts yet! Click here to add some!</div>
+              <button onClick={goCreateText}>Add text</button>
+            </>
+          }
+        </>
+      )}
     </PageLayout>
   )
 }
