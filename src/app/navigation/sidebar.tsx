@@ -3,11 +3,11 @@ import React, { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BandageIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   HomeIcon,
   ScreenShareIcon,
-  LogOut
+  LogOut,
+  ArrowLeftToLine,
+  ArrowRightToLine
 } from "lucide-react";
 import { useIsMobile } from "../../services/breakpoint-service";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -52,7 +52,7 @@ const Sidebar = () => {
       icon: <BandageIcon />,
     },
      { 
-      title: "logout",
+      title: "Logout",
       navigateTo: "/api/auth/logout",
       icon: <LogOut />,
       protected: true
@@ -70,15 +70,15 @@ const Sidebar = () => {
         className={`bg-stone-900 text-white 
                     h-screen transition-all 
                     duration-300 
-                    
-                    
                     box-content
+                    border-r-2
+                    border-r-stone-100
                     ${isOpen ? "w-64" : "w-16 overflow-hidden"}`}
       >
         {/* Sidebar content */}
         <div className="flex flex-col">
           {/* Button to toggle sidebar */}
-          <div className="flex ">
+          <div className="flex border-b-2 border-b-stone-100">
             <button
               className={`flex flex-1 ${
                 isOpen ? "justify-end pr-4" : "justify-center"
@@ -87,7 +87,7 @@ const Sidebar = () => {
             >
               {/* Toggle icon based on isOpen state */}
               <div className="flex flex-row">
-                {isOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+                {isOpen ? <ArrowLeftToLine /> : <ArrowRightToLine />}
               </div>
             </button>
           </div>
