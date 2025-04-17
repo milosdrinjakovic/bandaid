@@ -103,3 +103,19 @@
   flex: 1; /* Expands to take the remaining space in .expandable */
   overflow-y: auto; /* Allows scrolling within .field if content exceeds */
 } 
+
+.ql-align-center {
+  text-align: center;
+}
+
+.ql-align-right {
+  text-align: right;
+}
+
+.ql-align-left {
+  text-align: left;
+}
+
+.ql-align-justify {
+  text-align: justify;
+}

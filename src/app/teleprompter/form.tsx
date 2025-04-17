@@ -32,7 +32,6 @@ export default function Form(props: FormPageProps) {
   useEffect(() => {
     if (mode === 'edit') {
       setIsLoading(true);
-      setTimeout(() => {
         teleprompterService.getTextById(id).then(text => {
           const { title, content, scrollSpeed } = text;
           setTitle(title)
@@ -41,7 +40,6 @@ export default function Form(props: FormPageProps) {
         }).finally(() => {
           setIsLoading(false);
         })
-      }, 2000)
     }
   }, [])
 
@@ -188,7 +186,6 @@ export default function Form(props: FormPageProps) {
           </div>
           <div className="flex justify-end mt-10">
             <button
-              type="reset"
               className="bg-stone-400 text-white hover:bg-stone-500 hover:text-stone-900 duration-300 rounded mr-5 w-28 h-10"
               onClick={handleBack}
             >

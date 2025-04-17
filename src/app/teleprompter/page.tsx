@@ -1,7 +1,8 @@
 "use client"
 import React, { Key, useEffect, useRef } from "react";
 import teleprompterService from "../../services/telepromtper-service";
-import { Text, UserData } from "../types";
+import { TUserData } from "../models/userData";
+import { TText } from "../models/text";
 import isEqual from "lodash/isEqual"
 
 import {
@@ -19,9 +20,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function List() {
 
-  const [userData, setUserData] = React.useState<UserData>();
-  const [texts, setTexts] = React.useState<Text[]>([]);
-  const [selectedText, setSelectedText] = React.useState<Text>();
+  const [userData, setUserData] = React.useState<TUserData>();
+  const [texts, setTexts] = React.useState<TText[]>([]);
+  const [selectedText, setSelectedText] = React.useState<TText>();
   const [isScrolling, setIsScrolling] = React.useState(true);
   const [scrollSpeed, setScrollSpeed] = React.useState(10);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -51,7 +52,7 @@ export default function List() {
   const getTextsForUser = async () => {
     try {
       await teleprompterService.getTextsByUserId().then(response => {
-        setTexts(response);
+        setTexts(response.sort((a, b) => a.order - b.order));
       });
     } catch (error) {
       console.log(error);
@@ -62,11 +63,8 @@ export default function List() {
 
   React.useEffect(() => {
     setIsLoading(true);
-    setTimeout(() => {
       getUserData();
       getTextsForUser();
-    }, 2000)
-
   }, [])
 
   const goDetailPage = (id) => {
@@ -80,7 +78,7 @@ export default function List() {
     router.push("/teleprompter/add")
   }
 
-  const handleSelect = (e: Event, text: Text) => {
+  const handleSelect = (e: Event, text: TText) => {
     e.stopPropagation(); // Prevent the click from propagating to the card
     setSelectedText(text);
     handleFullScreen.enter();
@@ -112,10 +110,13 @@ export default function List() {
   }, [handleFullScreen.active, isScrolling, scrollSpeed]);
 
   const updateTextsOrder = async (reordered) => {
-    const orderIds = reordered.map(e => e._id);
+    const reorderedTexts: Partial<TText> = reordered.map((e, index) => ({
+       _id: e._id,
+       order: index + 1
+  }));
 
     try {
-      await teleprompterService.updateTextsOrder(orderIds);
+      await teleprompterService.updateTextsOrder(reorderedTexts);
 
     } catch (error) {
       console.log("Error occurred:", error);
@@ -130,10 +131,17 @@ export default function List() {
     const [removed] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, removed);
 
+    reordered.map((item, index) => {
+      return {
+        ...item,
+        order: index + 1
+      }
+    })
+
     const areSame = isEqual(texts, reordered);
     if (!areSame) {
-      setTexts(reordered);
       updateTextsOrder(reordered);
+      setTexts(reordered);
     }
   };
 
@@ -149,7 +157,7 @@ export default function List() {
         el.style.backgroundColor = ""; // Reset background color
       }
       if (el.style.color) {
-        el.style.color = "white"; // Reset background color
+        el.style.color = "white"; // Set text color
       }
     });
 
@@ -190,6 +198,7 @@ export default function List() {
     setScrollSpeed(newScrollSpeed);
   }
 
+  console.log({texts})
   return (
     <PageLayout title="Teleprompter">
       {isLoading ? (
@@ -211,7 +220,7 @@ export default function List() {
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                     >
-                      {texts?.map((text, index) => (
+                      {texts.map((text, index) => (
                         <Draggable key={text._id} draggableId={text._id!!} index={index}>
                           {(provided) => {
                             const style = {
@@ -257,7 +266,7 @@ export default function List() {
                   <div
                     ref={scrollRef}
                     onClick={() => setIsScrolling(!isScrolling)}
-                    className="text-white overflow-auto text-2xl md:text-5xl pt-10 pb-10 h-full px-2 md:p-20 select-none"
+                    className="overflow-auto text-2xl md:text-5xl pt-10 pb-10 h-full px-2 md:p-20 select-none"
                     dangerouslySetInnerHTML={{ __html: removeBackgroundColors(selectedText.content) }} />
                   : null}
 

@@ -1,6 +1,7 @@
 import axios from "axios";
-import { UserData, NewTextObject } from "../app/types";
-import { headers } from "next/headers";
+import { NewTextObject } from "@/app/models/util";
+import { TUserData } from "@/app/models/userData";
+import { TText } from "@/app/models/text";
 
 const serviceUrl = process.env.NEXT_PUBLIC_TELEPROMPTER_SERVICE_URL;
 
@@ -8,19 +9,17 @@ if (!serviceUrl) {
   throw new Error("Service URL not found!");
 }
 
-const createUserData = (): Promise<UserData> => {
-  return new Promise<UserData>((res) => { 
-    axios.post(serviceUrl, {
-     
-    }).then((response) => {
+const createUserData = (): Promise<TUserData> => {
+  return new Promise<TUserData>((res) => { 
+    axios.post(`${serviceUrl}/users`).then((response) => {
       res(response.data)
     })
   }) 
 };
 
-const getUserData = (): Promise<UserData> => {
-  return new Promise<UserData>((res) => { 
-    axios.get(serviceUrl).then((response) => {
+const getUserData = (): Promise<TUserData> => {
+  return new Promise<TUserData>((res) => { 
+    axios.get(`${serviceUrl}/users`).then((response) => {
       res(response.data)
     })
   }) 
@@ -46,8 +45,8 @@ const updateText = async (id, updatedObject: NewTextObject) => {
   return response.data;
 };
 
-const updateTextsOrder = async (ids: String[]) => {
-  const response = await axios.put(`${serviceUrl}/texts`, ids);
+const updateTextsOrder = async (orderedTexts: Partial<TText>) => {
+  const response = await axios.put(`${serviceUrl}/texts`, orderedTexts);
   return response.data;
 };
 
