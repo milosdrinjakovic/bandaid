@@ -14,7 +14,7 @@ export default function RootLayout({
     <html lang="en">
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <UserProvider>
-        <body className="bg-zinc-200">
+        <body className="bg-zinc-200 overflow-hidden">
         
           <Toaster position="top-center" />
             {children}

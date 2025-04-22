@@ -34,6 +34,10 @@ const Sidebar = () => {
     router.push(route);
   };
 
+  const toggleOpenSidebar = () => {
+    setIsOpen(!isOpen)
+  }
+
   const navItems = [
     {
       title: "Home",
@@ -47,11 +51,6 @@ const Sidebar = () => {
       protected: true
     },
     {
-      title: "About",
-      navigateTo: "/about",
-      icon: <BandageIcon />,
-    },
-     { 
       title: "Logout",
       navigateTo: "/api/auth/logout",
       icon: <LogOut />,
@@ -62,6 +61,7 @@ const Sidebar = () => {
     (item) => !item.protected || user
   );
   return (
+    
     <div className="flex">
       {/* Sidebar */}
       <div
@@ -72,47 +72,42 @@ const Sidebar = () => {
                     duration-300 
                     box-content
                     border-r-2
+                    flex
                     border-r-stone-100
                     ${isOpen ? "w-64" : "w-16 overflow-hidden"}`}
       >
         {/* Sidebar content */}
-        <div className="flex flex-col">
-          {/* Button to toggle sidebar */}
-          <div className="flex border-b-2 border-b-stone-100">
-            <button
-              className={`flex flex-1 ${
-                isOpen ? "justify-end pr-4" : "justify-center"
-              } bg-stone-900 text-white hover:bg-white duration-300 hover:text-stone-900 pt-4 pb-4`}
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              {/* Toggle icon based on isOpen state */}
-              <div className="flex flex-row">
-                {isOpen ? <ArrowLeftToLine /> : <ArrowRightToLine />}
+        <div className="flex flex-col flex-1 justify-between">
+          <div>
+            {filteredNavItems.map((item) => (
+              <div
+                key={item.title}
+                className={`w-full px-3 py-6
+                            hover:bg-white hover:text-stone-900 duration-300
+                            flex flex-row items-center cursor-pointer
+                            ${pathSubstring === item.navigateTo
+                    ? "bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400 text-white"
+                    : ""}`}
+                onClick={() => goToRoute(item.navigateTo)}
+              >
+                <div className="pl-2 pr-5">{item.icon}</div>
+                {item.title}
               </div>
-            </button>
+            ))}
           </div>
-
-          {filteredNavItems.map((item) => (
-            <div
-              key={item.title}
-              className={`w-full px-3 py-6
-                          hover:bg-white hover:text-stone-900 duration-300
-                          flex flex-row items-center cursor-pointer
-                          ${
-                            pathSubstring === item.navigateTo
-                              ? "bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400 text-white"
-                              : ""
-                          }`}
-              onClick={() => goToRoute(item.navigateTo)}
-            >
-              <div className="pl-2 pr-5">{item.icon}</div>
-              {item.title}
+          <div className={`flex ${isOpen ? "justify-end" : "justify-start"}`}>
+          <button
+            className={`flex bg-stone-900 text-white p-4`}
+            onClick={toggleOpenSidebar}
+          >
+            {/* Toggle icon based on isOpen state */}
+            <div className="flex flex-row">
+              {isOpen ? <ArrowLeftToLine /> : <ArrowRightToLine />}
             </div>
-          ))}
-
-          
+          </button>
+          </div>
         </div>
-        
+
       </div>
     </div>
   );

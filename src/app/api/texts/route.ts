@@ -73,8 +73,6 @@ export async function PUT(request) {
         const orderedTexts: Partial<IText>[] = await request.json();
         const userId = session.user.sub;
 
-        console.log({orderedTexts})
-
         const texts = await Texts.bulkWrite(
           orderedTexts.map(({ _id, order }) => ({
             updateOne: {

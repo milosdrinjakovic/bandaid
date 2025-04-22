@@ -1,15 +1,19 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import teleprompterService from "../../services/telepromtper-service";
 import React from "react";
+import { debounce } from 'lodash';
 import toast from "react-hot-toast";
 import RichTextEditor from "@/components/RichTextEditor";
 import PageLayout from "@/app/layout/pageLayout";
-import { InfoIcon, TrashIcon } from "lucide-react";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PlayIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CoolButton, PrimaryButton, SecondaryButton, TertiaryButton } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { useFullScreenHandle } from "react-full-screen";
+import FullScreenComponent from "@/components/fullScreen";
 
 interface FormPageProps {
   mode: 'create' | 'edit'
@@ -18,10 +22,14 @@ interface FormPageProps {
 export default function Form(props: FormPageProps) {
 
   const { mode } = props;
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [scrollSpeed, setScrollSpeed] = useState(10);
+  const [text, setText] = useState({
+    title: "",
+    content: "",
+    scrollSpeed: 10
+  });
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleFullScreen = useFullScreenHandle();
 
   const router = useRouter()
   const { id } = useParams();
@@ -32,14 +40,11 @@ export default function Form(props: FormPageProps) {
   useEffect(() => {
     if (mode === 'edit') {
       setIsLoading(true);
-        teleprompterService.getTextById(id).then(text => {
-          const { title, content, scrollSpeed } = text;
-          setTitle(title)
-          setContent(content)
-          setScrollSpeed(scrollSpeed || 10)
-        }).finally(() => {
-          setIsLoading(false);
-        })
+      teleprompterService.getTextById(id).then(t => {
+        setText(t)
+      }).finally(() => {
+        setIsLoading(false);
+      })
     }
   }, [])
 
@@ -49,13 +54,12 @@ export default function Form(props: FormPageProps) {
         await teleprompterService.updateText(
           id,
           {
-            title: title,
-            content: content,
-            scrollSpeed: scrollSpeed
+            title: text.title,
+            content: text.content,
+            scrollSpeed: text.scrollSpeed
           });
 
-        console.log("Successful saving data");
-        goHome();
+        console.log("Successful saved data");
         toast.success('You have sucessfully edited the text!')
       } catch (error) {
         console.log("Error occurred:", error);
@@ -64,12 +68,12 @@ export default function Form(props: FormPageProps) {
     } else {
       try {
         await teleprompterService.createText({
-          title: title,
-          content: content,
-          scrollSpeed: scrollSpeed
+          title: text.title,
+          content: text.content,
+          scrollSpeed: text.scrollSpeed
         });
 
-        console.log("Successful saving data");
+        console.log("Successfully saving data");
         goHome();
         toast.success('You have created a new text!')
       } catch (error) {
@@ -84,18 +88,37 @@ export default function Form(props: FormPageProps) {
   };
 
   const handleTitleChange = (event) => {
-    setTitle(event.target.value)
+    setText((prev) => {
+      return {
+        ...prev,
+        title: event.target.value
+      }
+    })
   }
 
   const handleContentChange = (value) => {
-    setContent(value);
+    setText((prev) => {
+      return {
+        ...prev,
+        content: value
+      }
+    })
   };
 
-  const handleScrollSpeedInputChange = (event) => {
-    const speed = event.target.value;
-    if (speed > 0) {
-      setScrollSpeed(speed);
-    }
+  const debouncedSetValue = useMemo(
+    () => debounce((value: number) => {
+      setText((prev) => {
+        return {
+          ...prev,
+          scrollSpeed: value[0]
+        }
+      })
+    }, 500),
+    []
+  );
+
+  const handleScrollSpeedChange = (value) => {
+    debouncedSetValue(value)
   };
 
   const deleteText = async () => {
@@ -109,11 +132,15 @@ export default function Form(props: FormPageProps) {
     }
   }
 
+  const handleSelect = () => {
+    handleFullScreen.enter();
+  }
+
   const deleteDialog = () => {
     return (
       <Dialog>
-        <DialogTrigger>
-          <TrashIcon className="text-red-600 cursor-pointer hover:text-red-400 duration-300" />
+        <DialogTrigger asChild>
+          <TertiaryButton icon={<TrashIcon />} className="text-red-600 cursor-pointer hover:text-red-400 duration-300" />
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -123,15 +150,9 @@ export default function Form(props: FormPageProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <div className="flex justify-end mt-10">
-              <DialogClose>
-                <button type="reset" className="bg-gray-300 rounded mr-5 w-28 h-10">
-                  Close
-                </button>
-              </DialogClose>
-              <button type="submit" className="bg-teal-300 rounded w-28 h-10" onClick={deleteText}>
-                Confirm
-              </button>
+            <div className="flex flex-col md:flex-row justify-end mt-10 gap-2">
+              <SecondaryButton label="Close" />
+              <PrimaryButton label="Confirm" onClick={deleteText} />
             </div>
           </DialogFooter>
         </DialogContent>
@@ -146,11 +167,12 @@ export default function Form(props: FormPageProps) {
       ) : (
         <>
           <div className="flex flex-col mb-5">
-            <div className="flex flex-row justify-between items-center">
+            <p>Title</p>
+            <div className="flex flex-row">
               <input
                 type="text"
                 placeholder="Title goes here"
-                value={title}
+                value={text.title}
                 onChange={handleTitleChange}
                 className="p-2 rounded mr-6 w-full md:w-1/2 text-stone-900"
               />
@@ -159,47 +181,36 @@ export default function Form(props: FormPageProps) {
             </div>
           </div>
 
-          <div className="mb-5 flex items-center">
-            <input
-              type="number"
-              placeholder="Speed"
-              value={scrollSpeed}
-              min={0}
-              onChange={handleScrollSpeedInputChange}
-              className="text-stone-900 p-2 rounded w-20 mr-6"
-            />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Higher the number, higher the speed of scrolling</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
+          <div className="mb-5 flex flex-col gap-1 md:w-48">
+            <p>Scroll speed</p>
+            <Slider defaultValue={[text.scrollSpeed]} max={300} step={1} onValueChange={handleScrollSpeedChange} />
           </div>
 
-          <div className="h-full text-stone-900 bg-white overflow-y-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-white">
-            <RichTextEditor value={content} onTextChange={handleContentChange} />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <p>Content</p>
+            <div className="h-full flex-1 text-stone-900 bg-white overflow-y-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-white">
+              <RichTextEditor value={text.content} onTextChange={handleContentChange} />
+            </div>
           </div>
-          <div className="flex justify-end mt-10">
-            <button
-              className="bg-stone-400 text-white hover:bg-stone-500 hover:text-stone-900 duration-300 rounded mr-5 w-28 h-10"
+          <div className="flex flex-col md:flex-row justify-end mt-4 md:gap-2 gap-4">
+            <SecondaryButton
               onClick={handleBack}
-            >
-              Back
-            </button>
+              label="Back"
+            />
 
-            <button
-              type="submit"
+            <CoolButton
+              onClick={handleSelect}
+              label="Preview"
+              icon={<PlayIcon />}
+              iconPosition="left"
+            />
+
+            <PrimaryButton
               onClick={onSubmit}
-              className="bg-purple-700 text-white hover:bg-purple-400 hover:text-stone-900 duration-300 rounded w-28 h-10"
-            >
-              Save
-            </button>
+              label="Save"
+            />
           </div>
+          {text && <FullScreenComponent selectedText={text} handleFullScreen={handleFullScreen} />}
         </>
       )}
     </PageLayout>
