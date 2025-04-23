@@ -186,9 +186,11 @@ export default function List() {
 
             </>)
             :
-            <div>
-              <p>Looks like you don't have any texts yet! Click here to add some!</p>
-              <CoolButton onClick={goCreateText} label="Add text"/>
+            <div className="flex items-center text-center flex-col gap-4 flex-1 justify-center">
+              <p>Looks like you don't have any texts yet! <br/>
+                 Click here to create some!
+              </p>
+              <CoolButton onClick={goCreateText} label="Create text"/>
             </div>
           }
           {selectedText && <FullScreenComponent texts={texts} selectedText={selectedText} handleFullScreen={handleFullScreen} />}

@@ -1,3 +1,4 @@
+'use client'
 import React, { ReactElement } from "react"
 
 type ButtonProps = {
@@ -67,11 +68,11 @@ export const AddButton = (props: ButtonProps) => {
 
 export const CoolButton = (props: ButtonProps) => {
   
-  const { onClick, label, icon, iconPosition } = props;
+  const { onClick, label, icon, iconPosition, className } = props;
 
   return (
     <button
-      className="bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400 duration-300 hover:text-stone-900 rounded px-4 min-w-36 h-10"
+      className={`${className} bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400 duration-300 hover:text-stone-900 rounded px-4 min-w-36 h-10`}
       onClick={onClick}
     >
        <div className={`flex flex-row gap-2 justify-center ${iconPosition === "left" ? "flex-row-reverse" : ""}`}>

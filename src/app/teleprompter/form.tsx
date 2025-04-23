@@ -174,7 +174,7 @@ export default function Form(props: FormPageProps) {
                 placeholder="Title goes here"
                 value={text.title}
                 onChange={handleTitleChange}
-                className="p-2 rounded mr-6 w-full md:w-1/2 text-stone-900"
+                className={`${mode === 'edit' ? "mr-6" : "" } p-2 rounded w-full md:w-1/2 text-stone-900`}
               />
 
               {mode === 'edit' && deleteDialog()}
