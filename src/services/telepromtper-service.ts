@@ -1,5 +1,4 @@
 import axios from "axios";
-import { NewTextObject } from "@/app/models/util";
 import { TUserData } from "@/app/models/userData";
 import { TText } from "@/app/models/text";
 
@@ -35,12 +34,12 @@ const getTextById = async(id) => {
   return response.data
 }
 
-const createText = async (newObject: NewTextObject) => {
+const createText = async (newObject: Partial<TText>) => {
   const response = await axios.post(`${serviceUrl}/texts`, newObject);
   return response.data;
 };
 
-const updateText = async (id, updatedObject: NewTextObject) => {
+const updateText = async (id, updatedObject: Partial<TText>) => {
   const response = await axios.put(`${serviceUrl}/texts/${id}`, updatedObject);
   return response.data;
 };

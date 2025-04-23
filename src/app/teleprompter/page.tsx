@@ -19,11 +19,16 @@ import toast from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddButton, CoolButton } from "@/components/ui/button";
 import FullScreenComponent from "@/components/fullScreen";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import { setTexts, setUserData } from "@/lib/features/textsSlice";
 
 export default function List() {
 
-  const [userData, setUserData] = useState<TUserData>();
-  const [texts, setTexts] = useState<TText[]>([]);
+  const dispatch = useDispatch()
+  const texts = useSelector((state: RootState) => state.texts.texts)
+  const userData = useSelector((state: RootState) => state.texts.userData)
+
   const [selectedText, setSelectedText] = useState<TText>();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter()
@@ -32,7 +37,7 @@ export default function List() {
   const getUserData = async () => {
     try {
       await teleprompterService.getUserData().then(response => {
-        setUserData(response);
+        handleSetUserDataDispatch(response);
       });
     } catch (error) {
       console.log(error);
@@ -42,17 +47,25 @@ export default function List() {
   const createUserData = async () => {
     try {
       await teleprompterService.createUserData().then(response => {
-        setUserData(response);
+        handleSetUserDataDispatch(response);
       });
     } catch (error) {
       console.log(error);
     }
   }
 
+  const handleSetTextsDispatch = (payload: TText[]) => {
+    dispatch(setTexts(payload));
+  }
+
+  const handleSetUserDataDispatch = (payload: TUserData) => {
+    dispatch(setUserData(payload));
+  }
+
   const getTextsForUser = async () => {
     try {
       await teleprompterService.getTextsByUserId().then(response => {
-        setTexts(response.sort((a, b) => a.order - b.order));
+        handleSetTextsDispatch(response.sort((a, b) => a.order - b.order));
       });
     } catch (error) {
       console.log(error);
@@ -120,7 +133,7 @@ export default function List() {
     const areSame = isEqual(texts, reordered);
     if (!areSame) {
       updateTextsOrder(reordered);
-      setTexts(reordered);
+      handleSetTextsDispatch(reordered);
     }
   };
 

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   HomeIcon,
@@ -15,14 +15,21 @@ import { useIsMobile } from "../../services/breakpoint-service";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import BandaidLogo from "../../../public/bandaid-logo.svg"
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import { toggle } from "@/lib/features/sidebarSlice";
 
 const Sidebar = () => {
+
   const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(isMobile);
+  
+  const isOpen = useSelector((state: RootState) => state.sidebar.isOpen)
+  const dispatch = useDispatch()
+
   const router = useRouter();
 
   const currentPathname = usePathname();
-  const { user, isLoading } = useUser();
+  const { user } = useUser();
 
   const getPath = () => {
     if (currentPathname.includes("/", 2)) {
@@ -38,7 +45,7 @@ const Sidebar = () => {
   };
 
   const toggleOpenSidebar = () => {
-    setIsOpen(!isOpen)
+    dispatch(toggle())
   }
 
   const navItems = [
@@ -95,7 +102,7 @@ const Sidebar = () => {
                 onClick={() => goToRoute(item.navigateTo)}
               >
                 <div className="pl-2 pr-5">{item.icon}</div>
-                <div className={textDissapearStyling()}>{item.title}</div>
+                <div className={!isMobile ? textDissapearStyling() : ""}>{item.title}</div>
               </div>
             ))}
           </div>
@@ -120,11 +127,11 @@ const Sidebar = () => {
   return (
     <>
       {isMobile ?
-        <div className="absolute top-5 left-4">
+        <div className="absolute text-white top-5 left-4">
           <Drawer direction="left">
             <DrawerTrigger><MenuIcon /></DrawerTrigger>
             <DrawerContent>
-            <DrawerClose className="absolute right-4 top-4 text-gray-500 hover:text-black">
+            <DrawerClose className="absolute right-4 top-4 text-white hover:text-black">
               <X className="h-5 w-5" />
             </DrawerClose>
               <DrawerHeader>

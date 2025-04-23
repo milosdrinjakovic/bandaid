@@ -31,8 +31,8 @@ export default function Home() {
           <>
             <div className="flex flex-col items-center justify-center text-white px-4 text-center">
               <Image height="100" width="100" src={BandaidLogo} alt="bandaid-logo" />
-              <h1 className="text-4xl md:text-5xl font-bold my-5 text-purple-400">
-                Bandaid
+              <h1 className="text-4xl md:text-5xl font-bold my-5 bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400 bg-clip-text text-transparent">
+                bandaid
               </h1>
               <div className="text-lg md:text-xl text-gray-300 mb-6">
                 A set of tools that bands or musicians can use to enhance their performance.<br />

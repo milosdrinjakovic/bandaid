@@ -7,13 +7,17 @@ import { debounce } from 'lodash';
 import toast from "react-hot-toast";
 import RichTextEditor from "@/components/RichTextEditor";
 import PageLayout from "@/app/layout/pageLayout";
-import { PlayIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { PlayIcon, TrashIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CoolButton, PrimaryButton, SecondaryButton, TertiaryButton } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useFullScreenHandle } from "react-full-screen";
 import FullScreenComponent from "@/components/fullScreen";
+import { RootState } from "@/lib/store";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedText } from "@/lib/features/textsSlice";
+import { TText } from "../models/text";
 
 interface FormPageProps {
   mode: 'create' | 'edit'
@@ -22,11 +26,10 @@ interface FormPageProps {
 export default function Form(props: FormPageProps) {
 
   const { mode } = props;
-  const [text, setText] = useState({
-    title: "",
-    content: "",
-    scrollSpeed: 10
-  });
+
+  const dispatch = useDispatch()
+  const text = useSelector((state: RootState) => state.texts.selectedText)
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFullScreen = useFullScreenHandle();
@@ -37,11 +40,15 @@ export default function Form(props: FormPageProps) {
     router.push("/teleprompter")
   }
 
+  const handleSetSelectedTextDispatch = (payload: Partial<TText>) => {
+    dispatch(setSelectedText(payload));
+  }
+
   useEffect(() => {
     if (mode === 'edit') {
       setIsLoading(true);
       teleprompterService.getTextById(id).then(t => {
-        setText(t)
+        handleSetSelectedTextDispatch(t)
       }).finally(() => {
         setIsLoading(false);
       })
@@ -88,31 +95,16 @@ export default function Form(props: FormPageProps) {
   };
 
   const handleTitleChange = (event) => {
-    setText((prev) => {
-      return {
-        ...prev,
-        title: event.target.value
-      }
-    })
+    handleSetSelectedTextDispatch({ title: event.target.value })
   }
 
   const handleContentChange = (value) => {
-    setText((prev) => {
-      return {
-        ...prev,
-        content: value
-      }
-    })
+    handleSetSelectedTextDispatch({ content: value })
   };
 
   const debouncedSetValue = useMemo(
     () => debounce((value: number) => {
-      setText((prev) => {
-        return {
-          ...prev,
-          scrollSpeed: value[0]
-        }
-      })
+      handleSetSelectedTextDispatch({ scrollSpeed: value[0] })
     }, 500),
     []
   );
@@ -174,7 +166,7 @@ export default function Form(props: FormPageProps) {
                 placeholder="Title goes here"
                 value={text.title}
                 onChange={handleTitleChange}
-                className={`${mode === 'edit' ? "mr-6" : "" } p-2 rounded w-full md:w-1/2 text-stone-900`}
+                className={`${mode === 'edit' ? "mr-6" : ""} p-2 rounded w-full md:w-1/2 text-stone-900`}
               />
 
               {mode === 'edit' && deleteDialog()}

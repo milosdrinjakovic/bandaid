@@ -5,7 +5,7 @@ export type TText = {
   userId: string
   title: string
   content: string
-  scrollSpeed?: number
+  scrollSpeed: number
   dateCreated?: Date
   dateModified?: Date
   order: number
