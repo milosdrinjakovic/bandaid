@@ -13,7 +13,7 @@ import {
 import Image from "next/image";
 import { useIsMobile } from "../../services/breakpoint-service";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import BandaidLogo from "../../../public/bandaid-logo.svg"
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
@@ -146,8 +146,11 @@ const Sidebar = () => {
                 Menu
               </DrawerDescription>
               <div className="flex">
-                  {sidebar()}
-                </div>
+                {sidebar()}
+              </div>
+              <DrawerFooter className="items-center justify-center">
+                Created 2025
+              </DrawerFooter>
             </DrawerContent>
           </Drawer>
         </div>
