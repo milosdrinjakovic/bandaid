@@ -18,6 +18,7 @@ import { RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedText } from "@/lib/features/textsSlice";
 import { TText } from "../models/text";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 interface FormPageProps {
   mode: 'create' | 'edit'
@@ -143,7 +144,9 @@ export default function Form(props: FormPageProps) {
           </DialogHeader>
           <DialogFooter>
             <div className="flex flex-col md:flex-row justify-end mt-10 gap-2">
-              <SecondaryButton label="Close" />
+              <DialogClose>
+                <SecondaryButton label="Close"/>
+              </DialogClose>
               <PrimaryButton label="Confirm" onClick={deleteText} />
             </div>
           </DialogFooter>
@@ -184,7 +187,7 @@ export default function Form(props: FormPageProps) {
               <RichTextEditor value={text.content} onTextChange={handleContentChange} />
             </div>
           </div>
-          <div className="flex flex-col md:flex-row justify-end mt-4 md:gap-2 gap-4">
+          <div className="btn-row flex flex-col-reverse md:flex-row justify-end mt-4 md:gap-2 gap-4">
             <SecondaryButton
               onClick={handleBack}
               label="Back"

@@ -22,6 +22,7 @@ import FullScreenComponent from "@/components/fullScreen";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { setTexts, setUserData } from "@/lib/features/textsSlice";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 export default function List() {
 
@@ -33,6 +34,8 @@ export default function List() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter()
   const handleFullScreen = useFullScreenHandle();
+
+  const { isLoading: isLoadingUser } = useUser();
 
   const getUserData = async () => {
     try {
@@ -139,7 +142,7 @@ export default function List() {
 
   return (
     <PageLayout title="Teleprompter">
-      {isLoading ? (
+      {isLoading || isLoadingUser ? (
         <div className="flex flex-col gap-6 pt-6 overflow-y-auto">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((e) => (
             <Skeleton key={e} className="w-full h-24 bg-gradient-to-r from-purple-700 via-purple-500 to-orange-400" />

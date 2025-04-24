@@ -18,18 +18,19 @@ import BandaidLogo from "../../../public/bandaid-logo.svg"
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { toggle } from "@/lib/features/sidebarSlice";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Sidebar = () => {
 
   const isMobile = useIsMobile();
-  
+
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen)
   const dispatch = useDispatch()
 
   const router = useRouter();
 
   const currentPathname = usePathname();
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
 
   const getPath = () => {
     if (currentPathname.includes("/", 2)) {
@@ -76,7 +77,7 @@ const Sidebar = () => {
   }
 
   const rotateLogoStyling = () => {
-    return `${isOpen ? "duration-300": "rotate-90 duration-300 h-10 w-10 ml-8"}`;
+    return `${isOpen ? "duration-300" : "rotate-90 duration-300 h-10 w-10 ml-8"}`;
   }
 
   const sidebar = () => {
@@ -126,41 +127,45 @@ const Sidebar = () => {
 
   return (
     <>
-      {isMobile ?
-        <div className="absolute text-white top-5 left-4">
-          <Drawer direction="left">
-            <DrawerTrigger><MenuIcon /></DrawerTrigger>
-            <DrawerContent>
-            <DrawerClose className="absolute right-4 top-4 text-white hover:text-black">
-              <X className="h-5 w-5" />
-            </DrawerClose>
-              <DrawerHeader>
-                <DrawerTitle>
-                  <div className="flex flex-1 flex-col justify-center items-center">
-                    <Image height="50" width="50" src={BandaidLogo} alt="bandaid-logo" />
-                    <p className="text-white font-extrabold mt-2 text-2xl font-mono">bandaid</p>
+      {isLoading ? (
+        null
+      ) : (
+        <>
+          {isMobile ?
+            <div className="absolute text-white top-5 left-4">
+              <Drawer direction="left">
+                <DrawerTrigger><MenuIcon size="30" /></DrawerTrigger>
+                <DrawerContent>
+                  <DrawerClose className="absolute right-4 top-4 text-white hover:text-black">
+                    <X className="h-30 w-30" />
+                  </DrawerClose>
+                  <DrawerHeader>
+                    <DrawerTitle>
+                      <div className="flex flex-1 flex-col justify-center items-center">
+                        <Image height="50" width="50" src={BandaidLogo} alt="bandaid-logo" />
+                        <p className="text-white font-extrabold mt-2 text-2xl font-mono">bandaid</p>
+                      </div>
+                    </DrawerTitle>
+                  </DrawerHeader>
+                  <DrawerDescription className="ml-5 mb-5">
+                    Menu
+                  </DrawerDescription>
+                  <div className="flex">
+                    {sidebar()}
                   </div>
-                </DrawerTitle>
-              </DrawerHeader>
-              <DrawerDescription className="ml-5 mb-5">
-                Menu
-              </DrawerDescription>
+                  <DrawerFooter className="items-center justify-center">
+                    Created 2025
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            </div>
+            : (
               <div className="flex">
-                {sidebar()}
-              </div>
-              <DrawerFooter className="items-center justify-center">
-                Created 2025
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
-        </div>
-        : (
-          <div className="flex">
-            {/* Sidebar */}
-            <div
-              // Conditional class based on isOpen
-              // state to control width and visibility
-              className={`
+                {/* Sidebar */}
+                <div
+                  // Conditional class based on isOpen
+                  // state to control width and visibility
+                  className={`
                   bg-stone-900
                   text-white 
                     h-screen 
@@ -171,10 +176,12 @@ const Sidebar = () => {
                     flex
                   border-r-stone-100
                     ${isOpen ? "w-64" : "w-16 overflow-hidden"}`}>
-              {sidebar()}
-            </div>
-          </div>
-        )}
+                  {sidebar()}
+                </div>
+              </div>
+            )}
+        </>
+      )}
     </>
   );
 };
